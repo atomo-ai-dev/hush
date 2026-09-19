@@ -1,5 +1,30 @@
 import { describe, expect, it } from 'vitest';
-import { commentInput, idParam, LIMITS, parsePage, postInput } from '@/lib/validation';
+import { commentInput, idParam, LIMITS, parsePage, postInput, reportInput } from '@/lib/validation';
+
+describe('reportInput', () => {
+  it('accepts posts and comments with an optional reason', () => {
+    expect(reportInput.parse({ targetType: 'post', targetId: 3 })).toEqual({
+      targetType: 'post',
+      targetId: 3,
+      reason: null,
+    });
+    expect(reportInput.parse({ targetType: 'comment', targetId: 1, reason: ' 욕설 ' })).toEqual({
+      targetType: 'comment',
+      targetId: 1,
+      reason: '욕설',
+    });
+  });
+
+  it.each([
+    { targetType: 'user', targetId: 1 },
+    { targetType: 'post', targetId: 0 },
+    { targetType: 'post', targetId: '1' },
+    { targetType: 'post', targetId: 1.5 },
+    { targetType: 'post', targetId: 1, reason: 'r'.repeat(201) },
+  ])('rejects %j', (input) => {
+    expect(reportInput.safeParse(input).success).toBe(false);
+  });
+});
 
 describe('postInput', () => {
   it('trims title and body', () => {

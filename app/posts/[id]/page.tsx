@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { CommentForm } from '@/components/CommentForm';
 import { LikeButton } from '@/components/LikeButton';
+import { ReportButton } from '@/components/ReportButton';
 import { getPost, listComments } from '@/lib/board';
 import { getCurrentSession } from '@/lib/current-session';
 import { formatRelativeTime } from '@/lib/format';
@@ -47,6 +48,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
             initialLiked={post.likedByMe}
             initialCount={post.likeCount}
           />
+          <ReportButton targetType="post" targetId={post.id} />
         </div>
       </article>
 
@@ -59,6 +61,7 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                 <p className="flex gap-3 text-xs text-stone-500">
                   <span className="font-medium text-stone-700">{c.nickname}</span>
                   <span>{formatRelativeTime(c.createdAt)}</span>
+                  <ReportButton targetType="comment" targetId={c.id} />
                 </p>
                 <p className="mt-1 whitespace-pre-wrap">{c.body}</p>
               </li>
