@@ -16,3 +16,11 @@ export function formatRelativeTime(iso: string, now: Date = new Date()): string 
   const d = String(kst.getUTCDate()).padStart(2, '0');
   return `${y}.${m}.${d}`;
 }
+
+/** Clock time (HH:MM, KST) for chat messages. */
+export function formatClock(iso: string): string {
+  const kst = new Date(new Date(iso).getTime() + 9 * HOUR);
+  const hh = String(kst.getUTCHours()).padStart(2, '0');
+  const mm = String(kst.getUTCMinutes()).padStart(2, '0');
+  return `${hh}:${mm}`;
+}
