@@ -1,11 +1,13 @@
 import { inject } from 'vitest';
 import { getPool } from '@/lib/db';
+import { resetRateLimits } from '@/lib/rate-limit';
 import { newSessionToken, SESSION_COOKIE } from '@/lib/session-token';
 
 export const dbAvailable = inject('dbAvailable');
 
-/** Empties every application table (keeps the migration bookkeeping). */
+/** Empties every application table (keeps the migration bookkeeping) and rate limits. */
 export async function resetDb(): Promise<void> {
+  resetRateLimits();
   const { rows } = await getPool().query<{ tablename: string }>(
     `SELECT tablename FROM pg_tables
       WHERE schemaname = 'public' AND tablename <> 'schema_migrations'`,

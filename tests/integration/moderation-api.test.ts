@@ -44,4 +44,32 @@ describe.skipIf(!dbAvailable)('moderation (integration)', () => {
       expect((await comment(alice, postId, '좋은 글이네요')).status).toBe(201);
     });
   });
+
+  describe('rate limiting', () => {
+    it('allows 5 posts+comments per minute per session, then answers 429', async () => {
+      const alice = new TestClient();
+      const postId = await createOk(alice);
+      for (let i = 0; i < 2; i++) expect((await create(alice)).status).toBe(201);
+      for (let i = 0; i < 2; i++)
+        expect((await comment(alice, postId, `댓글 ${i}`)).status).toBe(201);
+
+      const blockedComment = await comment(alice, postId, '여섯 번째');
+      expect(blockedComment.status).toBe(429);
+      expect(blockedComment.headers.get('retry-after')).toMatch(/^\d+$/);
+      const body = await blockedComment.json();
+      expect(body.error.code).toBe('RATE_LIMITED');
+      expect(body.error.message).toContain('1분에 5개');
+      expect((await create(alice)).status).toBe(429);
+
+      // Other sessions are unaffected.
+      expect((await create(new TestClient())).status).toBe(201);
+    });
+
+    it('does not spend the budget on rejected (invalid or banned) input', async () => {
+      const alice = new TestClient();
+      for (let i = 0; i < 5; i++) expect((await create(alice, '', 'x')).status).toBe(400);
+      for (let i = 0; i < 5; i++) expect((await create(alice, 'fuck', 'x')).status).toBe(400);
+      expect((await create(alice)).status).toBe(201);
+    });
+  });
 });
