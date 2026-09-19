@@ -1,12 +1,29 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { ApiError } from '@/lib/http';
 import {
+  CHAT_LIMIT,
+  enforceChatLimit,
   enforceFeedbackLimit,
+  enforceRoomLimit,
   enforceWriteLimit,
+  ROOM_LIMIT,
   resetRateLimits,
   SlidingWindowRateLimiter,
   WRITE_LIMIT,
 } from '@/lib/rate-limit';
+
+describe('room and chat limits', () => {
+  beforeEach(resetRateLimits);
+
+  it('limits room creation and chat messages on independent budgets', () => {
+    for (let i = 0; i < ROOM_LIMIT.limit; i++) enforceRoomLimit(3);
+    expect(() => enforceRoomLimit(3)).toThrow(expect.objectContaining({ status: 429 }));
+
+    for (let i = 0; i < CHAT_LIMIT.limit; i++) enforceChatLimit(3);
+    expect(() => enforceChatLimit(3)).toThrow(/메시지를 너무 빠르게/);
+    expect(() => enforceWriteLimit(3)).not.toThrow();
+  });
+});
 
 function clock(start = 1_000_000) {
   let t = start;

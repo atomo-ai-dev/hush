@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  chatMessageInput,
   commentInput,
   feedbackInput,
   idParam,
@@ -7,7 +8,42 @@ import {
   parsePage,
   postInput,
   reportInput,
+  roomInput,
 } from '@/lib/validation';
+
+describe('roomInput', () => {
+  it('trims and limits room names to 40 characters', () => {
+    expect(roomInput.parse({ name: '  잡담방 ' })).toEqual({ name: '잡담방' });
+    expect(roomInput.safeParse({ name: '방'.repeat(40) }).success).toBe(true);
+    expect(roomInput.safeParse({ name: '방'.repeat(41) }).success).toBe(false);
+    expect(roomInput.safeParse({ name: '   ' }).success).toBe(false);
+  });
+});
+
+describe('chatMessageInput', () => {
+  it('accepts a trimmed message of up to 500 characters', () => {
+    expect(chatMessageInput.parse({ type: 'message', body: ' 안녕 ' })).toEqual({
+      type: 'message',
+      body: '안녕',
+    });
+    expect(chatMessageInput.safeParse({ type: 'message', body: 'a'.repeat(500) }).success).toBe(
+      true,
+    );
+    expect(chatMessageInput.safeParse({ type: 'message', body: 'a'.repeat(501) }).success).toBe(
+      false,
+    );
+  });
+
+  it.each([
+    { type: 'message', body: '' },
+    { type: 'message', body: ' \n\t　' },
+    { type: 'message' },
+    { type: 'typing', body: 'hi' },
+    { body: 'hi' },
+  ])('rejects %j', (input) => {
+    expect(chatMessageInput.safeParse(input).success).toBe(false);
+  });
+});
 
 describe('reportInput', () => {
   it('accepts posts and comments with an optional reason', () => {
