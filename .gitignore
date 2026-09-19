@@ -7,3 +7,5 @@ coverage/
 !.env.example
 **/*_secret.*
 .DS_Store
+*.tsbuildinfo
+next-env.d.ts
