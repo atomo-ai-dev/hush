@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { getCurrentSession } from '@/lib/current-session';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -13,7 +14,9 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  const session = await getCurrentSession();
+
   return (
     <html lang="ko">
       <body className="min-h-screen bg-stone-50 text-stone-900 antialiased">
@@ -27,6 +30,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                 게시판
               </Link>
             </nav>
+            <div className="ml-auto flex items-center gap-3 text-sm">
+              {session && (
+                <span className="truncate text-stone-500" title="나의 익명 닉네임">
+                  <span className="hidden sm:inline">나는 </span>
+                  <strong className="font-medium text-stone-800">{session.nickname}</strong>
+                </span>
+              )}
+            </div>
           </div>
         </header>
         <main className="mx-auto max-w-3xl px-4 py-6">{children}</main>
