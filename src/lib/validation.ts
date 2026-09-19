@@ -37,3 +37,19 @@ export function parsePage(value: string | string[] | null | undefined): number {
   if (!raw || !/^\d{1,6}$/.test(raw)) return 1;
   return Math.max(1, Number(raw));
 }
+
+export const reportInput = z.object({
+  targetType: z.enum(['post', 'comment'], { error: '신고 대상이 올바르지 않습니다.' }),
+  targetId: z
+    .number({ error: '신고 대상이 올바르지 않습니다.' })
+    .int({ error: '신고 대상이 올바르지 않습니다.' })
+    .positive({ error: '신고 대상이 올바르지 않습니다.' })
+    .max(Number.MAX_SAFE_INTEGER, { error: '신고 대상이 올바르지 않습니다.' }),
+  reason: z
+    .string()
+    .trim()
+    .max(200, { error: '신고 사유는 200자 이하여야 합니다.' })
+    .nullish()
+    .transform((s) => s || null),
+});
+export type ReportInput = z.infer<typeof reportInput>;

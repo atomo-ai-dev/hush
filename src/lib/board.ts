@@ -74,7 +74,8 @@ function toComment(r: CommentRow): Comment {
 }
 
 const LIKE_COUNT_SQL = '(SELECT count(*) FROM post_likes l WHERE l.post_id = p.id)::int';
-const COMMENT_COUNT_SQL = '(SELECT count(*) FROM comments c WHERE c.post_id = p.id)::int';
+const COMMENT_COUNT_SQL =
+  '(SELECT count(*) FROM comments c WHERE c.post_id = p.id AND c.hidden_at IS NULL)::int';
 
 export const notFound = () => new ApiError(404, 'NOT_FOUND', '글을 찾을 수 없습니다.');
 
@@ -86,11 +87,12 @@ export async function listPosts(page: number): Promise<PostPage> {
       `SELECT p.id, p.title, s.nickname, p.created_at,
               ${LIKE_COUNT_SQL} AS like_count, ${COMMENT_COUNT_SQL} AS comment_count
          FROM posts p JOIN sessions s ON s.id = p.session_id
+        WHERE p.hidden_at IS NULL
         ORDER BY p.created_at DESC, p.id DESC
         LIMIT $1 OFFSET $2`,
       [PAGE_SIZE, offset],
     ),
-    query<{ total: number }>('SELECT count(*)::int AS total FROM posts p'),
+    query<{ total: number }>('SELECT count(*)::int AS total FROM posts WHERE hidden_at IS NULL'),
   ]);
   const total = totalResult.rows[0].total;
   return {
@@ -109,7 +111,7 @@ export async function getPost(id: number, viewerSessionId: number | null): Promi
             EXISTS (SELECT 1 FROM post_likes l WHERE l.post_id = p.id AND l.session_id = $2)
               AS liked_by_me
        FROM posts p JOIN sessions s ON s.id = p.session_id
-      WHERE p.id = $1`,
+      WHERE p.id = $1 AND p.hidden_at IS NULL`,
     [id, viewerSessionId],
   );
   const row = rows[0];
@@ -121,7 +123,7 @@ export async function listComments(postId: number): Promise<Comment[]> {
   const { rows } = await query<CommentRow>(
     `SELECT c.id, c.post_id, c.body, s.nickname, c.created_at
        FROM comments c JOIN sessions s ON s.id = c.session_id
-      WHERE c.post_id = $1
+      WHERE c.post_id = $1 AND c.hidden_at IS NULL
       ORDER BY c.created_at ASC, c.id ASC`,
     [postId],
   );
@@ -137,7 +139,9 @@ export async function createPost(session: Session, input: PostInput): Promise<Po
 }
 
 async function assertPostExists(postId: number): Promise<void> {
-  const { rowCount } = await query('SELECT 1 FROM posts WHERE id = $1', [postId]);
+  const { rowCount } = await query('SELECT 1 FROM posts WHERE id = $1 AND hidden_at IS NULL', [
+    postId,
+  ]);
   if (!rowCount) throw notFound();
 }
 
