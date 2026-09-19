@@ -38,6 +38,33 @@ pnpm dev
 | `pnpm typecheck` | `next typegen` + `tsc --noEmit` |
 | `pnpm lint` / `pnpm format` | Biome 검사 / 자동 수정 |
 
+## 환경변수
+
+| 이름 | 기본값 | 설명 |
+| --- | --- | --- |
+| `DATABASE_URL` | `postgres://postgres:hush@localhost:5433/hush` | 앱 DB |
+| `DATABASE_URL_TEST` | `…/hush_test` | 통합 테스트 DB |
+| `PORT` | `4620` | 커스텀 서버 포트 |
+| `HUSH_BANNED_WORDS` | 내장 목록 | 쉼표 구분 금칙어 (대소문자 무시, 설정 시 내장 목록 대체) |
+| `HUSH_INTERNAL_TOKEN` | (없음 → 비활성) | `/api/_errors` 내부 에러 로그 API 토큰 (`x-hush-internal-token` 헤더) |
+
+## API 요약
+
+| 메서드 · 경로 | 설명 |
+| --- | --- |
+| `GET /api/me` | 내 익명 닉네임 |
+| `GET /api/posts?page=N` | 글 목록 (최신순, 20개씩, 숨김 제외) |
+| `POST /api/posts` | 글 작성 `{title ≤100, body ≤5000}` |
+| `GET /api/posts/:id` | 글 + 댓글 |
+| `POST /api/posts/:id/comments` | 댓글 `{body ≤1000}` |
+| `POST /api/posts/:id/like` | 추천 토글 (세션당 1회) |
+| `POST /api/reports` | 신고 `{targetType: post\|comment, targetId}` — 서로 다른 세션 3회면 숨김 |
+| `POST /api/feedback` | 버그 신고 `{message ≤2000, pageUrl?}` |
+| `GET/POST /api/_errors` | 내부 에러 로그 조회/기록 (토큰 필요) |
+
+글·댓글은 세션당 1분에 5개까지(초과 시 `429` + `Retry-After`), 금칙어가 있으면 `400 BANNED_WORD`.
+처리되지 않은 API 예외는 `error_logs` 테이블에 기록되고 클라이언트에는 일반 500 메시지만 간다.
+
 ## 테스트
 
 - 단위 테스트: `tests/unit` — DB 불필요.
