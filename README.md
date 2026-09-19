@@ -37,6 +37,7 @@ pnpm dev
 | `pnpm test` | 단위 + 통합 테스트 (`test:unit`, `test:integration` 따로 실행 가능) |
 | `pnpm typecheck` | `next typegen` + `tsc --noEmit` |
 | `pnpm lint` / `pnpm format` | Biome 검사 / 자동 수정 |
+| `pnpm smoke [baseUrl]` | 실행 중인 서버(기본 `http://localhost:4620`)에 대한 E2E 스모크 (게시판·신고·도배·채팅) |
 
 ## 환경변수
 
@@ -61,9 +62,19 @@ pnpm dev
 | `POST /api/reports` | 신고 `{targetType: post\|comment, targetId}` — 서로 다른 세션 3회면 숨김 |
 | `POST /api/feedback` | 버그 신고 `{message ≤2000, pageUrl?}` |
 | `GET/POST /api/_errors` | 내부 에러 로그 조회/기록 (토큰 필요) |
+| `GET /api/rooms` · `POST /api/rooms` | 채팅방 목록 / 생성 `{name ≤40}` (세션당 1분 3개) |
+| `GET /api/rooms/:id` | 채팅방 + 최근 메시지 50개 |
 
 글·댓글은 세션당 1분에 5개까지(초과 시 `429` + `Retry-After`), 금칙어가 있으면 `400 BANNED_WORD`.
 처리되지 않은 API 예외는 `error_logs` 테이블에 기록되고 클라이언트에는 일반 500 메시지만 간다.
+
+## 실시간 채팅 (WebSocket)
+
+`server.ts`가 `ws://<host>/ws/chat?roomId=N` 업그레이드를 직접 처리한다 (세션 쿠키 필수, 다른 Origin 거부).
+
+- 접속 시 서버 → `{"type":"history","room":{…},"messages":[최근 50개]}`, 이후 `{"type":"presence","count":N}`
+- 클라이언트 → `{"type":"message","body":"…"}` (공백만/500자 초과/금칙어/10초 10개 초과는 `{"type":"error",code,message}`)
+- 저장 후 같은 방 전원에게 `{"type":"message","message":{id,roomId,nickname,body,createdAt}}`
 
 ## 테스트
 
@@ -77,8 +88,10 @@ pnpm dev
 ```
 app/            Next.js App Router (페이지 + /api 라우트)
 src/lib/        도메인·데이터 계층 (db, 검증, 세션, 저장소 함수)
+src/server/     WebSocket 채팅 서버
+src/components/ 클라이언트 컴포넌트
 migrations/     순번 SQL 마이그레이션
-scripts/        마이그레이션 실행기
+scripts/        마이그레이션 실행기, 스모크 테스트
 server.ts       커스텀 서버 (Next 요청 처리 + WebSocket)
 tests/          unit / integration
 ```
