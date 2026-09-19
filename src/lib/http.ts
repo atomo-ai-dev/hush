@@ -1,4 +1,5 @@
 import { ZodError, type z } from 'zod';
+import { recordApiError } from './error-log';
 
 export class ApiError extends Error {
   constructor(
@@ -63,9 +64,8 @@ type Handler<P extends Record<string, string>> = (
 
 export type UnhandledErrorReporter = (err: unknown, req: Request) => Promise<void> | void;
 
-let reportUnhandled: UnhandledErrorReporter = (err) => {
-  console.error('[api] unhandled error', err);
-};
+// Unhandled API errors go to the error_logs table by default.
+let reportUnhandled: UnhandledErrorReporter = recordApiError;
 
 export function setUnhandledErrorReporter(reporter: UnhandledErrorReporter): void {
   reportUnhandled = reporter;
