@@ -7,6 +7,7 @@ import {
   serializeSessionCookie,
   sessionTokenFromCookieHeader,
 } from './src/lib/session-token';
+import { CHAT_PATH, createChatServer } from './src/server/chat-server';
 
 if (existsSync('.env')) process.loadEnvFile('.env');
 
@@ -40,12 +41,21 @@ const server = createServer((req, res) => {
   handle(req, res);
 });
 
+// Real-time chat. Next.js attaches its own upgrade listener (dev HMR) to this
+// server as well; it leaves paths it does not route, such as CHAT_PATH, alone.
+const chat = createChatServer();
+server.on('upgrade', (req, socket, head) => {
+  const { pathname } = new URL(req.url ?? '/', 'http://localhost');
+  if (pathname === CHAT_PATH) void chat.handleUpgrade(req, socket, head);
+});
+
 server.listen(port, hostname, () => {
   console.log(`> Hush ready on http://localhost:${port} (${dev ? 'development' : 'production'})`);
 });
 
 for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.on(signal, () => {
+    void chat.close();
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(0), 3000).unref();
   });
