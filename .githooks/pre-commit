@@ -1,0 +1,4 @@
+#!/bin/sh
+# 커밋 전 비밀정보 검사 (gitleaks). 우회(--no-verify) 금지 — AGENTS.md 참조.
+command -v gitleaks >/dev/null 2>&1 || { echo "gitleaks 미설치: brew install gitleaks"; exit 1; }
+exec gitleaks git --pre-commit --staged --redact --no-banner -c .gitleaks.toml
