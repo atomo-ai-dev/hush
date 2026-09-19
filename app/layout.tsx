@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { FeedbackButton } from '@/components/FeedbackButton';
 import { getCurrentSession } from '@/lib/current-session';
 import './globals.css';
 
@@ -37,6 +38,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <strong className="font-medium text-stone-800">{session.nickname}</strong>
                 </span>
               )}
+              <FeedbackButton />
             </div>
           </div>
         </header>

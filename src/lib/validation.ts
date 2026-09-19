@@ -53,3 +53,14 @@ export const reportInput = z.object({
     .transform((s) => s || null),
 });
 export type ReportInput = z.infer<typeof reportInput>;
+
+export const feedbackInput = z.object({
+  message: text('내용', LIMITS.feedback),
+  pageUrl: z
+    .string()
+    .trim()
+    .max(500, { error: '페이지 주소가 너무 깁니다.' })
+    .nullish()
+    .transform((s) => s || null),
+});
+export type FeedbackInput = z.infer<typeof feedbackInput>;

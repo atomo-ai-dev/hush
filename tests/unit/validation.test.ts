@@ -1,5 +1,13 @@
 import { describe, expect, it } from 'vitest';
-import { commentInput, idParam, LIMITS, parsePage, postInput, reportInput } from '@/lib/validation';
+import {
+  commentInput,
+  feedbackInput,
+  idParam,
+  LIMITS,
+  parsePage,
+  postInput,
+  reportInput,
+} from '@/lib/validation';
 
 describe('reportInput', () => {
   it('accepts posts and comments with an optional reason', () => {
@@ -23,6 +31,18 @@ describe('reportInput', () => {
     { targetType: 'post', targetId: 1, reason: 'r'.repeat(201) },
   ])('rejects %j', (input) => {
     expect(reportInput.safeParse(input).success).toBe(false);
+  });
+});
+
+describe('feedbackInput', () => {
+  it('requires a non-blank message up to 2000 characters', () => {
+    expect(feedbackInput.parse({ message: ' 버튼이 안 눌려요 ' })).toEqual({
+      message: '버튼이 안 눌려요',
+      pageUrl: null,
+    });
+    expect(feedbackInput.safeParse({ message: '' }).success).toBe(false);
+    expect(feedbackInput.safeParse({ message: 'm'.repeat(2001) }).success).toBe(false);
+    expect(feedbackInput.safeParse({ message: 'm', pageUrl: 'u'.repeat(501) }).success).toBe(false);
   });
 });
 
