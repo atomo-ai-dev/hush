@@ -65,21 +65,29 @@ export class SlidingWindowRateLimiter {
 
 export const WRITE_LIMIT = { limit: 5, windowMs: 60_000 } as const;
 export const FEEDBACK_LIMIT = { limit: 3, windowMs: 60_000 } as const;
+export const ROOM_LIMIT = { limit: 3, windowMs: 60_000 } as const;
+export const CHAT_LIMIT = { limit: 10, windowMs: 10_000 } as const;
 
-// Shared across route bundles and hot reloads within one server process.
-const globalForLimits = globalThis as unknown as {
-  __hushLimiters?: { write: SlidingWindowRateLimiter; feedback: SlidingWindowRateLimiter };
-};
+const LIMITS = {
+  write: WRITE_LIMIT,
+  feedback: FEEDBACK_LIMIT,
+  room: ROOM_LIMIT,
+  chat: CHAT_LIMIT,
+} as const;
 
-export function limiters() {
+type LimiterName = keyof typeof LIMITS;
+type Limiters = Record<LimiterName, SlidingWindowRateLimiter>;
+
+// Shared across route bundles, the WebSocket server and hot reloads within one process.
+const globalForLimits = globalThis as unknown as { __hushLimiters?: Limiters };
+
+export function limiters(): Limiters {
   if (!globalForLimits.__hushLimiters) {
-    const created = {
-      write: new SlidingWindowRateLimiter(WRITE_LIMIT),
-      feedback: new SlidingWindowRateLimiter(FEEDBACK_LIMIT),
-    };
+    const created = Object.fromEntries(
+      Object.entries(LIMITS).map(([name, opts]) => [name, new SlidingWindowRateLimiter(opts)]),
+    ) as Limiters;
     setInterval(() => {
-      created.write.prune();
-      created.feedback.prune();
+      for (const limiter of Object.values(created)) limiter.prune();
     }, 5 * 60_000).unref();
     globalForLimits.__hushLimiters = created;
   }
@@ -87,9 +95,7 @@ export function limiters() {
 }
 
 export function resetRateLimits(): void {
-  const l = limiters();
-  l.write.reset();
-  l.feedback.reset();
+  for (const limiter of Object.values(limiters())) limiter.reset();
 }
 
 function enforce(limiter: SlidingWindowRateLimiter, key: string, message: string): void {
@@ -113,4 +119,13 @@ export function enforceWriteLimit(sessionId: number): void {
 
 export function enforceFeedbackLimit(sessionId: number): void {
   enforce(limiters().feedback, `session:${sessionId}`, '신고를 너무 자주 보내고 있어요.');
+}
+
+export function enforceRoomLimit(sessionId: number): void {
+  enforce(limiters().room, `session:${sessionId}`, '채팅방을 너무 많이 만들고 있어요.');
+}
+
+/** Chat messages: 10 per 10 seconds per session. */
+export function enforceChatLimit(sessionId: number): void {
+  enforce(limiters().chat, `session:${sessionId}`, '메시지를 너무 빠르게 보내고 있어요.');
 }

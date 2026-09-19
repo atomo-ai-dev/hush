@@ -64,3 +64,15 @@ export const feedbackInput = z.object({
     .transform((s) => s || null),
 });
 export type FeedbackInput = z.infer<typeof feedbackInput>;
+
+export const roomInput = z.object({
+  name: text('방 이름', LIMITS.roomName),
+});
+export type RoomInput = z.infer<typeof roomInput>;
+
+/** A chat message sent over the WebSocket: `{ "type": "message", "body": "..." }`. */
+export const chatMessageInput = z.object({
+  type: z.literal('message', { error: '알 수 없는 메시지 형식입니다.' }),
+  body: text('메시지', LIMITS.chatMessage),
+});
+export type ChatMessageInput = z.infer<typeof chatMessageInput>;
