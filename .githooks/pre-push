@@ -1,0 +1,12 @@
+#!/bin/sh
+# main 보호 (Free 플랜이라 서버 측 브랜치 보호 불가 — 로컬 강제).
+# 에이전트: main 직접 push 금지 → 브랜치 push 후 PR. 병합은 사용자만(GitHub UI).
+# 사람 긴급 우회: git push --no-verify  (에이전트는 .claude/settings.json 에서 금지)
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/master)
+      echo "✋ pre-push: $remote_ref 로의 직접 push는 금지입니다. 브랜치를 push하고 PR을 여세요." >&2
+      exit 1 ;;
+  esac
+done
+exit 0
