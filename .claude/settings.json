@@ -1,0 +1,38 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(~/ax/doc/secret/**)",
+      "Read(//Users/wayne2/ax/doc/secret/**)",
+      "Read(**/secret/**)",
+      "Read(**/*_secret.*)",
+      "Read(**/.env)",
+      "Read(**/.env.*)",
+      "Read(~/.telegram-cli/**)",
+      "Read(~/pmwork/docs/slack-access.env)",
+      "Read(~/pushoongwork/docs/slack-access.env)",
+      "Read(**/hush-oracle/**)",
+      "Edit(**/hush-oracle/**)",
+      "Edit(.claude/settings.json)",
+      "Edit(.githooks/**)",
+      "Bash(colima ssh -p atomo-scorer:*)",
+      "Bash(colima ssh --profile atomo-scorer:*)",
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push --no-verify:*)",
+      "Bash(git push origin main:*)",
+      "Bash(git push -u origin main:*)",
+      "Bash(git push origin HEAD:main:*)",
+      "Bash(git commit --no-verify:*)",
+      "Bash(git commit -n:*)",
+      "Bash(git config:*)",
+      "Bash(git -c:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh repo edit:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(gh api -X PUT:*)",
+      "Bash(gh api -X DELETE:*)",
+      "Bash(gh api --method PUT:*)",
+      "Bash(gh api --method DELETE:*)"
+    ]
+  }
+}
