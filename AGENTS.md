@@ -4,3 +4,4 @@
 - 기능 코드와 테스트는 함께 커밋한다. 오라클 대상 모듈은 vitest 단위·통합 테스트 커버리지 70%+.
 - **버그를 일부러 심거나 oracle 테스트를 이 저장소에 두지 않는다** (주입은 채점 VM 파이프라인 전용 — Atomo 계획서 v2.0 §3).
 - 비밀정보·커밋 훅 규칙은 `~/ax/atomo/AGENTS.md` §4와 동일.
+- **커밋 규칙**: 메시지는 영어(conventional commits), 작성자는 `pawa-wayne <sh.back@gmail.com>`, PR 제목도 영어(squash 커밋 제목이 됨). `~/ax/atomo/AGENTS.md` §3-8과 동일.
