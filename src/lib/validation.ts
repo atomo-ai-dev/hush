@@ -4,13 +4,27 @@ import { LIMITS } from './limits';
 
 export { LIMITS, PAGE_SIZE } from './limits';
 
+/**
+ * Appends the Korean particle that fits the word's last syllable:
+ * `withParticle('제목', '을', '를')` → "제목을", `withParticle('메시지', '을', '를')` → "메시지를".
+ */
+export function withParticle(word: string, afterConsonant: string, afterVowel: string): string {
+  const code = word.charCodeAt(word.length - 1);
+  const isHangulSyllable = code >= 0xac00 && code <= 0xd7a3;
+  const hasFinalConsonant = isHangulSyllable && (code - 0xac00) % 28 !== 0;
+  return `${word}${hasFinalConsonant ? afterConsonant : afterVowel}`;
+}
+
 /** Trimmed, non-blank string with a max length counted in characters (code points). */
 function text(label: string, max: number) {
+  const required = `${withParticle(label, '을', '를')} 입력해 주세요.`;
   return z
-    .string({ error: `${label}을(를) 입력해 주세요.` })
+    .string({ error: required })
     .transform((s) => s.trim())
-    .refine((s) => s.length > 0, { error: `${label}을(를) 입력해 주세요.` })
-    .refine((s) => [...s].length <= max, { error: `${label}은(는) ${max}자 이하여야 합니다.` });
+    .refine((s) => s.length > 0, { error: required })
+    .refine((s) => [...s].length <= max, {
+      error: `${withParticle(label, '은', '는')} ${max}자 이하여야 합니다.`,
+    });
 }
 
 export const postInput = z.object({

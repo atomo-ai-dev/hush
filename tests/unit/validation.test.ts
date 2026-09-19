@@ -9,7 +9,27 @@ import {
   postInput,
   reportInput,
   roomInput,
+  withParticle,
 } from '@/lib/validation';
+
+describe('withParticle', () => {
+  it.each([
+    ['제목', '제목을'],
+    ['본문', '본문을'],
+    ['댓글', '댓글을'],
+    ['방 이름', '방 이름을'],
+    ['메시지', '메시지를'],
+    ['내용', '내용을'],
+    ['ABC', 'ABC를'],
+  ])('%s → %s', (word, expected) => {
+    expect(withParticle(word, '을', '를')).toBe(expected);
+  });
+
+  it('picks 은/는 the same way', () => {
+    expect(withParticle('제목', '은', '는')).toBe('제목은');
+    expect(withParticle('메시지', '은', '는')).toBe('메시지는');
+  });
+});
 
 describe('roomInput', () => {
   it('trims and limits room names to 40 characters', () => {
@@ -92,10 +112,10 @@ describe('postInput', () => {
 
   it('rejects missing or blank fields with Korean messages', () => {
     expect(postInput.safeParse({ title: '', body: 'x' }).error?.issues[0].message).toBe(
-      '제목을(를) 입력해 주세요.',
+      '제목을 입력해 주세요.',
     );
     expect(postInput.safeParse({ title: 'x', body: '   ' }).error?.issues[0].message).toBe(
-      '본문을(를) 입력해 주세요.',
+      '본문을 입력해 주세요.',
     );
     expect(postInput.safeParse({ title: 'x' }).success).toBe(false);
     expect(postInput.safeParse({ title: 1, body: 'x' }).success).toBe(false);
@@ -106,7 +126,7 @@ describe('postInput', () => {
       true,
     );
     const tooLong = postInput.safeParse({ title: 'a'.repeat(LIMITS.postTitle + 1), body: 'x' });
-    expect(tooLong.error?.issues[0].message).toBe('제목은(는) 100자 이하여야 합니다.');
+    expect(tooLong.error?.issues[0].message).toBe('제목은 100자 이하여야 합니다.');
   });
 
   it('counts characters, not UTF-16 code units (emoji, Hangul)', () => {

@@ -177,7 +177,7 @@ describe.skipIf(!dbAvailable)('chat WebSocket server (integration)', () => {
     a.send({ type: 'message', body: '' });
     expect(await a.next('error')).toMatchObject({ code: 'VALIDATION_FAILED' });
     a.send({ type: 'message', body: ' \n\t ' });
-    expect((await a.next('error')).message).toBe('메시지을(를) 입력해 주세요.');
+    expect((await a.next('error')).message).toBe('메시지를 입력해 주세요.');
     a.send({ type: 'message', body: 'x'.repeat(501) });
     expect((await a.next('error')).code).toBe('VALIDATION_FAILED');
     a.send('not json');
