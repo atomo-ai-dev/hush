@@ -30,6 +30,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
               <Link href="/" className="hover:text-stone-900">
                 게시판
               </Link>
+              <Link href="/chat" className="hover:text-stone-900">
+                채팅
+              </Link>
             </nav>
             <div className="ml-auto flex items-center gap-3 text-sm">
               {session && (
