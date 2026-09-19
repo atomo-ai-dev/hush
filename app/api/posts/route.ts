@@ -1,6 +1,7 @@
 import { assertNoBannedWords } from '@/lib/banned-words';
 import { createPost, listPosts } from '@/lib/board';
 import { apiHandler, parseInput, readJson } from '@/lib/http';
+import { enforceWriteLimit } from '@/lib/rate-limit';
 import { requireSession } from '@/lib/session';
 import { parsePage, postInput } from '@/lib/validation';
 
@@ -13,6 +14,7 @@ export const POST = apiHandler(async (req) => {
   const session = await requireSession(req);
   const input = parseInput(postInput, await readJson(req));
   assertNoBannedWords(input.title, input.body);
+  enforceWriteLimit(session.id);
   const post = await createPost(session, input);
   return Response.json({ post }, { status: 201 });
 });

@@ -1,5 +1,7 @@
 import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { createPost as createPostRecord } from '@/lib/board';
 import { closePool, query } from '@/lib/db';
+import { getOrCreateSession } from '@/lib/session';
 import { POST as postComment } from '../../app/api/posts/[id]/comments/route';
 import { POST as postLike } from '../../app/api/posts/[id]/like/route';
 import { GET as getPost } from '../../app/api/posts/[id]/route';
@@ -58,7 +60,9 @@ describe.skipIf(!dbAvailable)('board API (integration)', () => {
   describe('GET /api/posts', () => {
     it('lists newest first with 20 posts per page', async () => {
       const alice = new TestClient();
-      for (let i = 1; i <= 23; i++) await create(alice, `글 ${i}`);
+      const session = await getOrCreateSession(alice.token);
+      for (let i = 1; i <= 23; i++)
+        await createPostRecord(session, { title: `글 ${i}`, body: 'b' });
 
       const page1 = await (await listPosts(alice.request('/api/posts'), noParams)).json();
       expect(page1).toMatchObject({ page: 1, pageSize: 20, total: 23, totalPages: 2 });
