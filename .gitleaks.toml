@@ -1,0 +1,10 @@
+title = "atomo gitleaks config"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "wavespeed-api-key"
+description = "WaveSpeed API key"
+regex = '''wsk_(?:live|test)_[A-Za-z0-9_\-]{20,}'''
+keywords = ["wsk_"]
