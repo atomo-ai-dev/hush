@@ -13,7 +13,6 @@ const post = (over: Partial<Rankable>): Rankable => ({
 
 describe('hotScore', () => {
   it('scores a brand-new post with no activity', () => {
-    // 1 / 2^1.5
     expect(hotScore(post({}), now)).toBeCloseTo(0.353553, 5);
   });
 
@@ -23,7 +22,6 @@ describe('hotScore', () => {
   });
 
   it('the score falls as the post ages', () => {
-    // 11 / 4^1.5 = 11 / 8 at two hours, 11 / 27 at seven hours.
     expect(hotScore(post({ likes: 10, createdAt: hoursAgo(2) }), now)).toBeCloseTo(1.375, 10);
     expect(hotScore(post({ likes: 10, createdAt: hoursAgo(7) }), now)).toBeCloseTo(11 / 27, 10);
   });
@@ -41,7 +39,6 @@ describe('rankHot', () => {
   });
 
   it('rankHot breaks a score tie by the newer post', () => {
-    // 8 / 4^1.5 = 1 and 27 / 9^1.5 = 1.
     const older = post({ id: 1, likes: 26, createdAt: hoursAgo(7) });
     const newer = post({ id: 2, likes: 7, createdAt: hoursAgo(2) });
     expect(rankHot([older, newer], now).map((p) => p.id)).toEqual([2, 1]);
@@ -62,8 +59,12 @@ describe('rankHot', () => {
 
 describe('isTrending', () => {
   it('isTrending is true exactly at the threshold', () => {
-    // 7 likes at two hours scores exactly 1.
     expect(isTrending(post({ likes: 7, createdAt: hoursAgo(2) }), now, 1, 24)).toBe(true);
+  });
+
+  it('isTrending is true at exactly maxAgeHours', () => {
+    const old = post({ likes: 10_000, createdAt: hoursAgo(24) });
+    expect(isTrending(old, now, 1, 24)).toBe(true);
   });
 
   it('isTrending is false past maxAgeHours', () => {

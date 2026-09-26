@@ -1,10 +1,9 @@
 /**
  * @nickname mentions in chat messages and comments.
  *
- * A mention is '@' followed by a name of 2–20 Korean, Latin, digit or '_'
- * characters. The '@' must open the text or follow whitespace, so an email
- * address such as a@b.com is not a mention. A longer run of name characters is
- * cut at twenty, and a one-character name is not a mention at all.
+ * Names are Korean, Latin, digits or '_'. The '@' must open the text or follow
+ * whitespace, so email addresses are not mentions. Mention segments keep
+ * their '@' so they can be rendered as they were typed.
  */
 const NAME_CHARS = '[가-힣A-Za-z0-9_]';
 const MIN_NAME = 2;
@@ -13,7 +12,7 @@ const MENTION = new RegExp(`(?<=^|\\s)@(${NAME_CHARS}{${MIN_NAME},${MAX_NAME}})`
 
 export type Segment = { kind: 'text' | 'mention'; value: string };
 
-/** Mentioned names without the '@', in first-appearance order, without duplicates. */
+/** Mentioned names without the '@', first appearance first, without duplicates. */
 export function extractMentions(text: string): string[] {
   const names: string[] = [];
   for (const match of text.matchAll(MENTION)) {
@@ -24,9 +23,8 @@ export function extractMentions(text: string): string[] {
 }
 
 /**
- * Splits text into plain and mention segments for display. Joining the
- * values gives back the original text; mention segments keep their '@'.
- * Empty text gives no segments.
+ * Splits text into plain and mention segments for display; the values join
+ * back into the original text.
  */
 export function segmentMentions(text: string): Segment[] {
   const segments: Segment[] = [];
@@ -45,7 +43,7 @@ export function segmentMentions(text: string): Segment[] {
   return segments;
 }
 
-/** True when `nickname` is mentioned, ignoring case; the whole name must match. */
+/** Whether `nickname` is mentioned, ignoring case. */
 export function mentions(text: string, nickname: string): boolean {
   const wanted = nickname.toLowerCase();
   return extractMentions(text).some((name) => name.toLowerCase() === wanted);

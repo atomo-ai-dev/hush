@@ -25,16 +25,35 @@ describe('extractMentions', () => {
   it('accepts Korean names', () => {
     expect(extractMentions('고마워요 @조용한고양이')).toEqual(['조용한고양이']);
   });
+
+  it('accepts a mention after a tab or a newline', () => {
+    expect(extractMentions('확인\n@bob\t@carol')).toEqual(['bob', 'carol']);
+  });
 });
 
 describe('segmentMentions', () => {
   it('segments join back into the original text', () => {
     const text = '@alice 오늘 @밤올빼미 도 와요?';
-    const segments = segmentMentions(text);
-    expect(segments.map((s) => s.value).join('')).toBe(text);
-    expect(segments.filter((s) => s.kind === 'mention').map((s) => s.value)).toEqual([
-      '@alice',
-      '@밤올빼미',
+    expect(
+      segmentMentions(text)
+        .map((s) => s.value)
+        .join(''),
+    ).toBe(text);
+  });
+
+  it('splits mentions and the text between them', () => {
+    expect(segmentMentions('@alice 오늘 @밤올빼미 도 와요?')).toEqual([
+      { kind: 'mention', value: '@alice' },
+      { kind: 'text', value: ' 오늘 ' },
+      { kind: 'mention', value: '@밤올빼미' },
+      { kind: 'text', value: ' 도 와요?' },
+    ]);
+  });
+
+  it('text ending with a mention has no empty trailing segment', () => {
+    expect(segmentMentions('안녕 @alice')).toEqual([
+      { kind: 'text', value: '안녕 ' },
+      { kind: 'mention', value: '@alice' },
     ]);
   });
 
@@ -46,6 +65,10 @@ describe('segmentMentions', () => {
 describe('mentions', () => {
   it('mentions() ignores case', () => {
     expect(mentions('@Alice 확인 부탁', 'alice')).toBe(true);
+  });
+
+  it('mentions() matches an uppercase nickname against lowercase text', () => {
+    expect(mentions('@alice 확인 부탁', 'ALICE')).toBe(true);
   });
 
   it('mentions() does not match a partial name', () => {

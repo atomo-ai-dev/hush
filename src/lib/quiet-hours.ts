@@ -1,31 +1,25 @@
 /**
- * Chat notification quiet hours.
- *
- * A window is written "HH:MM-HH:MM" on the KST clock, for example "23:00-07:00"
- * for a window that crosses midnight. Times come in as UTC Dates and are
- * compared on the KST clock (UTC+9, no daylight saving).
+ * Chat notification quiet hours, written like "23:00-07:00" on the KST clock.
+ * Times come in as UTC Dates.
+ * Nothing here reads the system clock.
  */
 const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
 const KST_OFFSET = 9 * 60 * MINUTE;
 const SPEC = /^(\d{2}):(\d{2})-(\d{2}):(\d{2})$/;
 
-/** Minutes after KST midnight. endMin is exclusive; startMin > endMin crosses midnight. */
+/** Minutes after KST midnight. A window may cross midnight. */
 export interface Window {
   startMin: number;
   endMin: number;
 }
 
-/** Milliseconds since KST midnight for a UTC time. */
 function sinceKstMidnight(at: Date): number {
   const kst = at.getTime() + KST_OFFSET;
   return ((kst % DAY) + DAY) % DAY;
 }
 
-/**
- * Reads "HH:MM-HH:MM". Returns null for a malformed spec, an hour of 24 or
- * more, a minute of 60 or more, or a window that starts where it ends.
- */
+/** Reads "HH:MM-HH:MM"; null when it is not a usable window. */
 export function parseWindow(spec: string): Window | null {
   const match = SPEC.exec(spec.trim());
   if (!match) return null;
@@ -38,7 +32,7 @@ export function parseWindow(spec: string): Window | null {
   return { startMin, endMin };
 }
 
-/** True when `at`, read on the KST clock, falls inside the window. The end is exclusive. */
+/** Whether notifications are muted at `at`. */
 export function isQuiet(at: Date, w: Window): boolean {
   const minute = Math.floor(sinceKstMidnight(at) / MINUTE);
   if (w.startMin < w.endMin) {
@@ -47,7 +41,7 @@ export function isQuiet(at: Date, w: Window): boolean {
   return minute >= w.startMin || minute < w.endMin;
 }
 
-/** The nearest time at or after `at` when the window ends, as a UTC Date. */
+/** When the window next ends, counting from `at`. */
 export function nextQuietEnd(at: Date, w: Window): Date {
   const midnight = at.getTime() - sinceKstMidnight(at);
   let end = midnight + w.endMin * MINUTE;
