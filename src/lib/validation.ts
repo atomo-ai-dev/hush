@@ -62,7 +62,7 @@ export const reportInput = z.object({
   reason: z
     .string()
     .trim()
-    .max(200, { error: '신고 사유는 200자 이하여야 합니다.' })
+    .refine((s) => [...s].length <= 200, { error: '신고 사유는 200자 이하여야 합니다.' })
     .nullish()
     .transform((s) => s || null),
 });
