@@ -21,10 +21,16 @@ const clip = (s: string | null | undefined, max: number) => (s == null ? null : 
 export function describeError(err: unknown): { message: string; stack: string | null } {
   if (err instanceof Error) return { message: err.message || err.name, stack: err.stack ?? null };
   try {
-    return { message: typeof err === 'string' ? err : JSON.stringify(err), stack: null };
+    const stringified = typeof err === 'string' ? err : JSON.stringify(err);
+    // JSON.stringify can return undefined for certain values (undefined, functions, symbols)
+    // without throwing an error, so we need to check for that
+    if (stringified !== undefined) {
+      return { message: stringified, stack: null };
+    }
   } catch {
-    return { message: String(err), stack: null };
+    // Fall through to String(err) below
   }
+  return { message: String(err), stack: null };
 }
 
 /**
