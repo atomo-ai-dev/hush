@@ -153,7 +153,19 @@ describe('idParam', () => {
     expect(idParam.parse('42')).toBe(42);
   });
 
-  it.each(['0', '-1', '1.5', 'abc', '', '99999999999999999999'])('rejects %j', (raw) => {
+  it.each([
+    '0',
+    '-1',
+    '1.5',
+    'abc',
+    '',
+    '99999999999999999999',
+    '0x2A',
+    '4e1',
+    ' 42 ',
+    '+42',
+    '42.0',
+  ])('rejects %j', (raw) => {
     expect(idParam.safeParse(raw).success).toBe(false);
   });
 });
