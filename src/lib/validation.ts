@@ -45,11 +45,16 @@ export const commentInput = z.object(
 export type CommentInput = z.infer<typeof commentInput>;
 
 /** Positive integer id from a route segment such as "/posts/42". */
-export const idParam = z.coerce
-  .number({ error: '잘못된 주소입니다.' })
-  .int({ error: '잘못된 주소입니다.' })
-  .positive({ error: '잘못된 주소입니다.' })
-  .max(Number.MAX_SAFE_INTEGER, { error: '잘못된 주소입니다.' });
+export const idParam = z
+  .string({ error: '잘못된 주소입니다.' })
+  .refine((s) => /^[1-9]\d*$/.test(s), { error: '잘못된 주소입니다.' })
+  .pipe(
+    z.coerce
+      .number<string>({ error: '잘못된 주소입니다.' })
+      .int({ error: '잘못된 주소입니다.' })
+      .positive({ error: '잘못된 주소입니다.' })
+      .max(Number.MAX_SAFE_INTEGER, { error: '잘못된 주소입니다.' }),
+  );
 
 /** 1-based page number; missing or garbage values fall back to page 1. */
 export function parsePage(value: string | string[] | null | undefined): number {
