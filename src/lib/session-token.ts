@@ -22,13 +22,13 @@ export function hashSessionToken(token: string): string {
 
 /** Minimal RFC 6265 cookie header parser. Later duplicates do not override earlier ones. */
 export function parseCookies(header: string | null | undefined): Record<string, string> {
-  const out: Record<string, string> = {};
+  const out: Record<string, string> = Object.create(null);
   if (!header) return out;
   for (const part of header.split(';')) {
     const eq = part.indexOf('=');
     if (eq < 0) continue;
     const name = part.slice(0, eq).trim();
-    if (!name || name in out) continue;
+    if (!name || Object.hasOwn(out, name)) continue;
     let value = part.slice(eq + 1).trim();
     if (value.startsWith('"') && value.endsWith('"')) value = value.slice(1, -1);
     try {
