@@ -118,7 +118,7 @@ export function enforceWriteLimit(sessionId: number): void {
 }
 
 export function enforceFeedbackLimit(sessionId: number): void {
-  enforce(limiters().feedback, `session:${sessionId}`, '신고를 너무 자주 보내고 있어요.');
+  enforce(limiters().feedback, `session:${sessionId}`, '버그 신고를 너무 자주 보내고 있어요.');
 }
 
 export function enforceRoomLimit(sessionId: number): void {

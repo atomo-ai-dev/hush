@@ -6,6 +6,7 @@ import {
   enforceFeedbackLimit,
   enforceRoomLimit,
   enforceWriteLimit,
+  FEEDBACK_LIMIT,
   ROOM_LIMIT,
   resetRateLimits,
   SlidingWindowRateLimiter,
@@ -132,5 +133,20 @@ describe('enforceWriteLimit', () => {
   it('keeps feedback on a separate budget', () => {
     for (let i = 0; i < WRITE_LIMIT.limit; i++) enforceWriteLimit(7);
     expect(() => enforceFeedbackLimit(7)).not.toThrow();
+  });
+
+  it('names bug reports in the feedback limit message', () => {
+    for (let i = 0; i < FEEDBACK_LIMIT.limit; i++) enforceFeedbackLimit(8);
+    let error: unknown;
+    try {
+      enforceFeedbackLimit(8);
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeInstanceOf(ApiError);
+    const apiError = error as ApiError;
+    expect(apiError.status).toBe(429);
+    // `enforce` appends a retry hint; the message must lead with "버그 신고", not the post/comment "신고".
+    expect(apiError.message.startsWith('버그 신고를 너무 자주 보내고 있어요.')).toBe(true);
   });
 });
