@@ -18,11 +18,21 @@ describe('formatRelativeTime', () => {
     // 2026-09-01T20:00Z is already 2026-09-02 in Korea.
     expect(formatRelativeTime('2026-09-01T20:00:00Z', now)).toBe('2026.09.02');
   });
+
+  // #15: an Invalid Date used to render 'NaN.NaN.NaN'.
+  it.each(['not-a-date', ''])('returns an empty string for the invalid timestamp %j', (iso) => {
+    expect(formatRelativeTime(iso, now)).toBe('');
+  });
 });
 
 describe('formatClock', () => {
   it('shows zero-padded KST hours and minutes', () => {
     expect(formatClock('2026-09-19T00:05:00Z')).toBe('09:05');
     expect(formatClock('2026-09-19T15:30:59Z')).toBe('00:30');
+  });
+
+  // #15: an Invalid Date used to render 'NaN:NaN'.
+  it.each(['not-a-date', ''])('returns an empty string for the invalid timestamp %j', (iso) => {
+    expect(formatClock(iso)).toBe('');
   });
 });
