@@ -69,7 +69,7 @@ export const reportInput = z.object(
     reason: z
       .string({ error: '신고 사유가 올바르지 않습니다.' })
       .trim()
-      .max(200, { error: '신고 사유는 200자 이하여야 합니다.' })
+      .refine((s) => [...s].length <= 200, { error: '신고 사유는 200자 이하여야 합니다.' })
       .nullish()
       .transform((s) => s || null),
   },

@@ -88,6 +88,28 @@ describe('reportInput', () => {
   ])('rejects %j', (input) => {
     expect(reportInput.safeParse(input).success).toBe(false);
   });
+
+  // #12: the reason is counted in code points like every other field, so an emoji is one character.
+  it.each([150, 200])('accepts a reason of %i emoji', (n) => {
+    const reason = '😀'.repeat(n);
+    expect(reportInput.parse({ targetType: 'post', targetId: 1, reason }).reason).toBe(reason);
+  });
+
+  it('rejects a reason of 201 emoji with the same message', () => {
+    const result = reportInput.safeParse({
+      targetType: 'post',
+      targetId: 1,
+      reason: '😀'.repeat(201),
+    });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe('신고 사유는 200자 이하여야 합니다.');
+  });
+
+  it('turns a blank reason into null', () => {
+    expect(reportInput.parse({ targetType: 'post', targetId: 1, reason: ' \n\t ' }).reason).toBe(
+      null,
+    );
+  });
 });
 
 describe('feedbackInput', () => {
