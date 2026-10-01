@@ -1,4 +1,5 @@
 import { ZodError, type z } from 'zod';
+import { DEMO_READ_ONLY_MESSAGE, isDemoMode } from './demo';
 import { recordApiError } from './error-log';
 
 export class ApiError extends Error {
@@ -21,6 +22,8 @@ export function errorResponse(
 ): Response {
   return Response.json({ error: { code, message } }, { status, headers });
 }
+
+export const demoReadOnly = () => new ApiError(403, 'DEMO_READ_ONLY', DEMO_READ_ONLY_MESSAGE);
 
 export const MAX_JSON_BODY_BYTES = 32 * 1024;
 
@@ -79,6 +82,11 @@ export function apiHandler<P extends Record<string, string> = Record<string, str
   handler: Handler<P>,
 ): Handler<P> {
   return async (req, ctx) => {
+    // Refuse writes before the handler runs: it would resolve a session first.
+    if (isDemoMode() && req.method !== 'GET' && req.method !== 'HEAD') {
+      const e = demoReadOnly();
+      return errorResponse(e.status, e.code, e.message);
+    }
     try {
       return await handler(req, ctx);
     } catch (err) {

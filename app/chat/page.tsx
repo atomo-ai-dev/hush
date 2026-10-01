@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { RoomForm } from '@/components/RoomForm';
 import { listRooms } from '@/lib/chat';
+import { isDemoMode } from '@/lib/demo';
 import { formatRelativeTime } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,7 @@ export default async function ChatRoomsPage() {
   return (
     <section className="space-y-4">
       <h1 className="text-xl font-semibold">채팅방</h1>
-      <RoomForm />
+      <RoomForm readOnly={isDemoMode()} />
       {rooms.length === 0 ? (
         <p className="rounded-xl border border-dashed border-stone-300 bg-white p-10 text-center text-stone-500">
           아직 채팅방이 없어요. 첫 방을 만들어 보세요!

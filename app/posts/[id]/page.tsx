@@ -5,6 +5,7 @@ import { LikeButton } from '@/components/LikeButton';
 import { ReportButton } from '@/components/ReportButton';
 import { getPost, listComments } from '@/lib/board';
 import { getCurrentSession } from '@/lib/current-session';
+import { isDemoMode } from '@/lib/demo';
 import { formatRelativeTime } from '@/lib/format';
 import { ApiError } from '@/lib/http';
 import { idParam } from '@/lib/validation';
@@ -29,6 +30,7 @@ async function load(rawId: string) {
 
 export default async function PostPage({ params }: { params: Promise<{ id: string }> }) {
   const { post, comments } = await load((await params).id);
+  const demo = isDemoMode();
 
   return (
     <div className="space-y-6">
@@ -47,8 +49,9 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
             postId={post.id}
             initialLiked={post.likedByMe}
             initialCount={post.likeCount}
+            readOnly={demo}
           />
-          <ReportButton targetType="post" targetId={post.id} />
+          <ReportButton targetType="post" targetId={post.id} readOnly={demo} />
         </div>
       </article>
 
@@ -61,14 +64,14 @@ export default async function PostPage({ params }: { params: Promise<{ id: strin
                 <p className="flex gap-3 text-xs text-stone-500">
                   <span className="font-medium text-stone-700">{c.nickname}</span>
                   <span>{formatRelativeTime(c.createdAt)}</span>
-                  <ReportButton targetType="comment" targetId={c.id} />
+                  <ReportButton targetType="comment" targetId={c.id} readOnly={demo} />
                 </p>
                 <p className="mt-1 whitespace-pre-wrap">{c.body}</p>
               </li>
             ))}
           </ul>
         )}
-        <CommentForm postId={post.id} />
+        <CommentForm postId={post.id} readOnly={demo} />
       </section>
     </div>
   );

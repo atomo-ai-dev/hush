@@ -3,6 +3,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { FeedbackButton } from '@/components/FeedbackButton';
 import { getCurrentSession } from '@/lib/current-session';
+import { DEMO_BANNER, isDemoMode } from '@/lib/demo';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
   const session = await getCurrentSession();
+  const demo = isDemoMode();
 
   return (
     <html lang="ko">
@@ -41,10 +43,18 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
                   <strong className="font-medium text-stone-800">{session.nickname}</strong>
                 </span>
               )}
-              <FeedbackButton />
+              <FeedbackButton readOnly={demo} />
             </div>
           </div>
         </header>
+        {demo && (
+          <p
+            role="note"
+            className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-900"
+          >
+            {DEMO_BANNER}
+          </p>
+        )}
         <main className="mx-auto max-w-3xl px-4 py-6">{children}</main>
       </body>
     </html>

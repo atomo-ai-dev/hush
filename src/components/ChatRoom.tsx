@@ -21,8 +21,21 @@ function merge(current: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
   return [...byId.values()].sort((a, b) => a.id - b.id);
 }
 
-export function ChatRoom({ roomId, myNickname }: { roomId: number; myNickname: string | null }) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+/**
+ * Live chat over WebSocket. Given a `transcript`, renders it statically instead
+ * (demo mode has no WebSocket server): no connection, input disabled.
+ */
+export function ChatRoom({
+  roomId,
+  myNickname,
+  transcript,
+}: {
+  roomId: number;
+  myNickname: string | null;
+  transcript?: ChatMessage[];
+}) {
+  const readOnly = transcript !== undefined;
+  const [messages, setMessages] = useState<ChatMessage[]>(transcript ?? []);
   const [status, setStatus] = useState<Status>('connecting');
   const [presence, setPresence] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -31,6 +44,7 @@ export function ChatRoom({ roomId, myNickname }: { roomId: number; myNickname: s
   const bottom = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (readOnly) return;
     let closedByUs = false;
     let retry = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -67,7 +81,7 @@ export function ChatRoom({ roomId, myNickname }: { roomId: number; myNickname: s
       clearTimeout(timer);
       socket.current?.close();
     };
-  }, [roomId]);
+  }, [roomId, readOnly]);
 
   useEffect(() => {
     if (messages.length > 0) bottom.current?.scrollIntoView({ block: 'end' });
@@ -93,15 +107,21 @@ export function ChatRoom({ roomId, myNickname }: { roomId: number; myNickname: s
   return (
     <div className="flex h-[calc(100dvh-11rem)] min-h-80 flex-col overflow-hidden rounded-xl border border-stone-200 bg-white">
       <div className="flex items-center justify-between border-b border-stone-100 px-4 py-2 text-xs text-stone-500">
-        <span className="flex items-center gap-1.5">
-          <span
-            className={`inline-block h-2 w-2 rounded-full ${
-              status === 'open' ? 'bg-emerald-500' : 'bg-amber-400'
-            }`}
-          />
-          {STATUS_LABEL[status]}
-        </span>
-        <span>{presence}명 접속 중</span>
+        {readOnly ? (
+          <span>저장된 대화 기록 (실시간 채팅 꺼짐)</span>
+        ) : (
+          <>
+            <span className="flex items-center gap-1.5">
+              <span
+                className={`inline-block h-2 w-2 rounded-full ${
+                  status === 'open' ? 'bg-emerald-500' : 'bg-amber-400'
+                }`}
+              />
+              {STATUS_LABEL[status]}
+            </span>
+            <span>{presence}명 접속 중</span>
+          </>
+        )}
       </div>
 
       <ol className="flex-1 space-y-2 overflow-y-auto px-4 py-3" aria-live="polite">
@@ -141,13 +161,16 @@ export function ChatRoom({ roomId, myNickname }: { roomId: number; myNickname: s
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             maxLength={LIMITS.chatMessage}
+            disabled={readOnly}
             aria-label="메시지"
-            placeholder="메시지를 입력하세요"
+            placeholder={
+              readOnly ? '시연 화면에서는 메시지를 보낼 수 없어요' : '메시지를 입력하세요'
+            }
             className="min-w-0 flex-1 rounded-lg border border-stone-300 px-3 py-2 focus:border-emerald-600 focus:outline-none"
           />
           <button
             type="submit"
-            disabled={status !== 'open'}
+            disabled={readOnly || status !== 'open'}
             className="shrink-0 rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800 disabled:opacity-50"
           >
             보내기

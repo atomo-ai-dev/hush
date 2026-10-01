@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { listPosts } from '@/lib/board';
+import { isDemoMode } from '@/lib/demo';
 import { formatRelativeTime } from '@/lib/format';
 import { parsePage } from '@/lib/validation';
 
@@ -19,12 +20,21 @@ export default async function BoardPage({
         <h1 className="text-xl font-semibold">
           게시판 <span className="text-sm font-normal text-stone-400">{total}개의 글</span>
         </h1>
-        <Link
-          href="/posts/new"
-          className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
-        >
-          글쓰기
-        </Link>
+        {isDemoMode() ? (
+          <span
+            aria-disabled="true"
+            className="cursor-not-allowed rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white opacity-50"
+          >
+            글쓰기
+          </span>
+        ) : (
+          <Link
+            href="/posts/new"
+            className="rounded-lg bg-emerald-700 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-800"
+          >
+            글쓰기
+          </Link>
+        )}
       </div>
 
       {posts.length === 0 ? (

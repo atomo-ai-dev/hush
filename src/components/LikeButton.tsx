@@ -7,10 +7,12 @@ export function LikeButton({
   postId,
   initialLiked,
   initialCount,
+  readOnly = false,
 }: {
   postId: number;
   initialLiked: boolean;
   initialCount: number;
+  readOnly?: boolean;
 }) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
@@ -39,7 +41,7 @@ export function LikeButton({
       <button
         type="button"
         onClick={toggle}
-        disabled={pending}
+        disabled={pending || readOnly}
         aria-pressed={liked}
         className={`rounded-full border px-3 py-1 text-sm transition ${
           liked
