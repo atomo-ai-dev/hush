@@ -4,7 +4,7 @@ import { type FormEvent, useEffect, useRef, useState } from 'react';
 import { apiFetch } from '@/lib/api-client';
 import { LIMITS } from '@/lib/limits';
 
-export function FeedbackButton() {
+export function FeedbackButton({ readOnly = false }: { readOnly?: boolean }) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [message, setMessage] = useState('');
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
@@ -37,7 +37,8 @@ export function FeedbackButton() {
       <button
         type="button"
         onClick={() => dialog.current?.showModal()}
-        className="rounded-md border border-stone-300 px-2 py-1 text-xs text-stone-600 hover:bg-stone-100"
+        disabled={readOnly}
+        className="rounded-md border border-stone-300 px-2 py-1 text-xs text-stone-600 hover:bg-stone-100 disabled:opacity-50"
       >
         버그 신고
       </button>

@@ -13,9 +13,11 @@ interface ReportResult {
 export function ReportButton({
   targetType,
   targetId,
+  readOnly = false,
 }: {
   targetType: 'post' | 'comment';
   targetId: number;
+  readOnly?: boolean;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<string | null>(null);
@@ -46,7 +48,7 @@ export function ReportButton({
       <button
         type="button"
         onClick={report}
-        disabled={pending}
+        disabled={pending || readOnly}
         className="text-stone-400 hover:text-red-600 disabled:opacity-50"
       >
         신고

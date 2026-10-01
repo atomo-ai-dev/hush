@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { PostForm } from '@/components/PostForm';
+import { isDemoMode } from '@/lib/demo';
 
+export const dynamic = 'force-dynamic';
 export const metadata = { title: '글쓰기 — Hush' };
 
 export default function NewPostPage() {
@@ -12,7 +14,7 @@ export default function NewPostPage() {
           목록으로
         </Link>
       </div>
-      <PostForm />
+      <PostForm readOnly={isDemoMode()} />
     </section>
   );
 }

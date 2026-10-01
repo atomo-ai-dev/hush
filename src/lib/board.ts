@@ -1,5 +1,7 @@
 import { query, withTransaction } from './db';
-import { ApiError } from './http';
+import { isDemoMode } from './demo';
+import { seedGetPost, seedListComments, seedListPosts } from './demo-seed';
+import { ApiError, demoReadOnly } from './http';
 import type { Session } from './session';
 import { type CommentInput, PAGE_SIZE, type PostInput } from './validation';
 
@@ -81,6 +83,7 @@ export const notFound = () => new ApiError(404, 'NOT_FOUND', '글을 찾을 수 
 
 /** Newest-first page of posts (page is 1-based). */
 export async function listPosts(page: number): Promise<PostPage> {
+  if (isDemoMode()) return seedListPosts(page);
   const offset = (page - 1) * PAGE_SIZE;
   const [{ rows }, totalResult] = await Promise.all([
     query<PostRow>(
@@ -105,6 +108,11 @@ export async function listPosts(page: number): Promise<PostPage> {
 }
 
 export async function getPost(id: number, viewerSessionId: number | null): Promise<PostDetail> {
+  if (isDemoMode()) {
+    const post = seedGetPost(id);
+    if (!post) throw notFound();
+    return post;
+  }
   const { rows } = await query<PostRow>(
     `SELECT p.id, p.title, p.body, s.nickname, p.created_at,
             ${LIKE_COUNT_SQL} AS like_count, ${COMMENT_COUNT_SQL} AS comment_count,
@@ -120,6 +128,7 @@ export async function getPost(id: number, viewerSessionId: number | null): Promi
 }
 
 export async function listComments(postId: number): Promise<Comment[]> {
+  if (isDemoMode()) return seedListComments(postId);
   const { rows } = await query<CommentRow>(
     `SELECT c.id, c.post_id, c.body, s.nickname, c.created_at
        FROM comments c JOIN sessions s ON s.id = c.session_id
@@ -131,6 +140,7 @@ export async function listComments(postId: number): Promise<Comment[]> {
 }
 
 export async function createPost(session: Session, input: PostInput): Promise<PostDetail> {
+  if (isDemoMode()) throw demoReadOnly();
   const { rows } = await query<{ id: string }>(
     'INSERT INTO posts (session_id, title, body) VALUES ($1, $2, $3) RETURNING id',
     [session.id, input.title, input.body],
@@ -150,6 +160,7 @@ export async function createComment(
   postId: number,
   input: CommentInput,
 ): Promise<Comment> {
+  if (isDemoMode()) throw demoReadOnly();
   await assertPostExists(postId);
   const { rows } = await query<CommentRow>(
     `WITH c AS (
@@ -167,6 +178,7 @@ export async function toggleLike(
   session: Session,
   postId: number,
 ): Promise<{ liked: boolean; likeCount: number }> {
+  if (isDemoMode()) throw demoReadOnly();
   await assertPostExists(postId);
   return withTransaction(async (client) => {
     const removed = await client.query(

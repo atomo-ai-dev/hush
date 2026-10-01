@@ -1,5 +1,7 @@
 import { query } from './db';
-import { ApiError } from './http';
+import { isDemoMode } from './demo';
+import { seedGetRoom, seedListMessages, seedListRooms } from './demo-seed';
+import { ApiError, demoReadOnly } from './http';
 import type { Session } from './session';
 
 export const HISTORY_LIMIT = 50;
@@ -66,6 +68,7 @@ export const roomNotFound = () => new ApiError(404, 'NOT_FOUND', '채팅방을 �
 
 /** Rooms ordered by most recent activity (new rooms count as activity). */
 export async function listRooms(): Promise<Room[]> {
+  if (isDemoMode()) return seedListRooms();
   const { rows } = await query<RoomRow>(
     `SELECT * FROM (${ROOM_SELECT}) r
       ORDER BY COALESCE(r.last_message_at, r.created_at) DESC, r.id DESC
@@ -75,11 +78,13 @@ export async function listRooms(): Promise<Room[]> {
 }
 
 export async function getRoom(id: number): Promise<Room | null> {
+  if (isDemoMode()) return seedGetRoom(id);
   const { rows } = await query<RoomRow>(`${ROOM_SELECT} WHERE r.id = $1`, [id]);
   return rows[0] ? toRoom(rows[0]) : null;
 }
 
 export async function createRoom(session: Session, name: string): Promise<Room> {
+  if (isDemoMode()) throw demoReadOnly();
   const { rows } = await query<{ id: string }>(
     'INSERT INTO rooms (name, session_id) VALUES ($1, $2) RETURNING id',
     [name, session.id],
@@ -94,6 +99,7 @@ export async function listRecentMessages(
   roomId: number,
   limit = HISTORY_LIMIT,
 ): Promise<ChatMessage[]> {
+  if (isDemoMode()) return seedListMessages(roomId, limit);
   const { rows } = await query<MessageRow>(
     `SELECT * FROM (
        SELECT m.id, m.room_id, s.nickname, m.body, m.created_at
@@ -112,6 +118,7 @@ export async function createMessage(
   roomId: number,
   body: string,
 ): Promise<ChatMessage> {
+  if (isDemoMode()) throw demoReadOnly();
   try {
     const { rows } = await query<MessageRow>(
       `INSERT INTO messages (room_id, session_id, body) VALUES ($1, $2, $3)

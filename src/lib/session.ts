@@ -1,4 +1,5 @@
 import { query } from './db';
+import { DEMO_VISITOR, isDemoMode } from './demo';
 import { ApiError } from './http';
 import { generateNickname } from './nickname';
 import { hashSessionToken, sessionTokenFromCookieHeader } from './session-token';
@@ -24,6 +25,7 @@ export async function getOrCreateSession(token: string): Promise<Session> {
 
 /** Resolves the caller's session from the request cookie or throws 401. */
 export async function requireSession(req: Request): Promise<Session> {
+  if (isDemoMode()) return DEMO_VISITOR;
   const token = sessionTokenFromCookieHeader(req.headers.get('cookie'));
   if (!token) {
     throw new ApiError(401, 'NO_SESSION', '세션이 없습니다. 페이지를 새로고침해 주세요.');

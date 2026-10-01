@@ -48,6 +48,7 @@ pnpm dev
 | `PORT` | `4620` | 커스텀 서버 포트 |
 | `HUSH_BANNED_WORDS` | 내장 목록 | 쉼표 구분 금칙어 (대소문자 무시, 설정 시 내장 목록 대체) |
 | `HUSH_INTERNAL_TOKEN` | (없음 → 비활성) | `/api/_errors` 내부 에러 로그 API 토큰 (`x-hush-internal-token` 헤더) |
+| `HUSH_DEMO` | (없음 → 꺼짐) | `1`이면 읽기 전용 시연 모드: DB 없이 `src/lib/demo-seed.ts` 의 가상 데이터를 보여 주고, 모든 쓰기 API는 403, 채팅은 WebSocket 없이 저장된 기록만 표시. 커스텀 서버 없이 `next build && next start`(Vercel 등)로 실행 |
 
 ## API 요약
 
